@@ -1,0 +1,248 @@
+Synchronized  同步
+控制多个线程之间的资源竞争的先后顺序
+  
+  用法:
+  1.写在普通方法前面,表示对实例对象加锁   实例加锁,一个类可以有多个实例,相互无影响
+  2.写在静态方法前面,表示对类对象加锁   类加锁, 无论创建多少个实例,类中的静态sync方法都受约束
+  3.写在代码块中, 锁是Synchronized括里面配置的对象（实例对象，类对象）
+  
+  
+  1.锁实例对象时调用加锁的方法都需要等待前面的线程执行完后才能调用
+  public class TestSynchronized{
+
+    public synchronized void method1(){
+        System.out.println("method 1 start");
+        try {
+            System.out.println("method 1 execute");
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("method 1 end");
+    }
+
+    public synchronized void method2(){
+        System.out.println("method 2 start");
+        try {
+            System.out.println("method 2 execute");
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("method 2 end");
+    }
+
+    public static void main(String[] args){
+        final TestSynchronized testSync = new TestSynchronized();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                testSync.method1();
+            }
+        }).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                testSync.method2();
+            }
+        }).start();
+    }
+}
+==================
+method 1 start
+method 1 execute
+method 1 end
+method 2 start
+method 2 execute
+method 2 end
+
+
+
+
+    2.锁类对象
+	public class TestSynchronized{
+    public static synchronized void method1(){
+        System.out.println("method 1 start");
+        try {
+            System.out.println("method 1 execute");
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("method 1 end");
+    }
+
+    public static synchronized void method2(){
+        System.out.println("method 2 start");
+        try {
+            System.out.println("method 2 execute");
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("method 2 end");
+    }
+
+    public static void main(String[] args){
+        final TestSynchronized testSync1 = new TestSynchronized();
+        final TestSynchronized testSync2 = new TestSynchronized();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                testSync1.method1();
+            }
+        }).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                testSync2.method2();
+            }
+        }).start();
+    }
+}
+============================
+method 1 start
+method 1 execute
+method 1 end
+method 2 start
+method 2 execute
+method 2 end
+
+
+
+
+
+wait, notify, notifyAll
+1.wait 将当前线程置为休眠状态,等待其他线程调用该对象的nofify或者nofityAll将其唤醒 (可以释放其持有的对象锁)
+public class TestSynchronized{
+    public  synchronized void testWait(){
+        try {
+            System.out.println("start wait");
+            wait();
+            System.out.println("end wait");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public synchronized void testNotify(){
+        System.out.println("start notify");
+        notify();
+        System.out.println("end notify");
+    }
+
+    public static void main(String[] args){
+        final TestSynchronized testSync1 = new TestSynchronized();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                testSync1.testWait();
+            }
+        }).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                testSync1.testWait();
+            }
+        }).start();
+    }
+}
+
+
+
+2.nofity 可以随机唤醒等待队列中等待的一个线程，并使得该线程退出等待状态，进入可运行状态
+
+
+3.NotifyAll    唤醒在此对象监视器上等待的所有线程
+public class TestSynchronized{
+    public  synchronized void testWait(){
+        try {
+            System.out.println(Thread.currentThread().getId()+"start wait");
+            wait();
+            System.out.println(Thread.currentThread().getId()+"end wait");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public synchronized void nofityAllMethod(){
+        notify();
+    }
+
+    public static void main(String[] args){
+        final TestSynchronized testSync1 = new TestSynchronized();
+		for(int i=0; i<30; i++){
+			new Thread(new Runnable(){
+				@Override
+				public void run(){
+					testSync1.testWait();
+				}
+			}).start();
+		}
+        
+        try {
+            Thread.sleep(2000);
+            testSync1.nofityAllMethod();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+}
+
+
+
+
+
+举一个完整的wait notify notifyAll的例子
+public class TestSynchronized{
+    public  synchronized void testWait(){
+        try {
+            System.out.println(Thread.currentThread().getId()+"start wait");
+            wait();
+            System.out.println(Thread.currentThread().getId()+"end wait");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        final TestSynchronized testSync1 = new TestSynchronized();
+
+        for (int i =0; i<10; i++){
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    testSync1.testWait();
+                }
+            }).start();
+        }
+
+        Thread.sleep(2000);
+
+
+        synchronized (testSync1){
+            testSync1.notify();
+        }
+
+        Thread.sleep(2000);
+
+
+        System.out.println("---------------------------");
+        synchronized (testSync1){
+            testSync1.notifyAll();
+        }
+
+
+    }
+}
+
+
+
+
+

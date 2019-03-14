@@ -1,0 +1,4 @@
+1.notifyAll和notify的代码执行完成后 其他wait线程是否获得锁
+2.future和Call
+3.阻塞的概念（yield是否会阻塞）
+4.interrupt wait 前后顺序是否会报错

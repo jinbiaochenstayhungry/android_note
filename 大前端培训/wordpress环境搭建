@@ -1,0 +1,38 @@
+wordpress环境搭建
+
+* Mac下启动apache
+
+	启动命令：sudo apachectl start
+	配置文件路径：/etc/apache2/httpd.conf
+
+	** 配置文件简单介绍
+
+	LoadModule php7_module libexec/apache2/libphp7.so
+	将这一句的注释打开，这里是用来加载php的解析模块的，不打开Apache无法解析php脚本
+
+	DocumentRoot "/Library/WebServer/Documents"
+	这句话是指定你的web页面文件入口地址的
+
+* 安装配置MySql
+	下载地址：https://dev.mysql.com/downloads/mysql/
+	**安装Note：init dataBase的时候需要选择传统密码加密方式
+
+* 安装phpMyAdmin
+	下载地址：https://www.phpmyadmin.net
+	** 下载后放置到DocumentRoot指定地址下
+	** 通过浏览器访问可以添加用户，添加数据库
+	** 添加一个wordpress用的用户（不添加可以用root）和一个wordpress用的数据库
+
+* 下载安装wordpress
+	下载地址：https://cn.wordpress.org/download/
+	** 下载后放置到DocumentRoot指定地址下
+	** 打开wp-config-sample.php文件配置数据库信息
+	** 将wp-config-sample.php改名为wp-config.php
+	** 打开浏览器运行http://youAdress/wp-admin/install.php
+	** 根据指引安装wordpress以及注册账号
+	** 登录账号就可以管理你的博客了
+
+
+
+
+

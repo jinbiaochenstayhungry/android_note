@@ -1,0 +1,178 @@
+package com.example.threadtest;
+
+// http://tool.oschina.net/apidocs/apidoc?api=jdk-zh
+
+
+/***
+
+ 线程状态 Thread.State
+
+ NEW:  新建 至今尚未启动的线程 处于这种状态
+
+ RUNNABLE: 可运行  正在 Java 虚拟机中执行的线程 处于这种状态
+
+ BLOCKED: 阻塞 受阻塞的线程 处于这种状态
+
+ WAITING: 等待 无限期地等待另一个线程来执行 某一特定操作的线程处于 这种状态
+
+ TIMED_WAITING: 计时等待 等待另一个线程来执行 取决于指定等待时间的操作的线程 处于这种状态
+
+ TERMINATED: 终止 已退出的线程 处于这种状态
+
+ */
+
+/*
+1. 创建状态
+- 当使用创建一个新对象时，new Thread()时，这个线程还没开始运行，处在NEW状态。
+
+2. 可运行状态
+- 调用了start()方法后，该线程处在RUNNABLE状态，这个线程的运行取决于操作系统给线程分配的时间片
+
+3. 不可运行状态
+- 不可运行状态包括阻塞（BLOCKED），等待状态（WAITING），计时等待 （TIMED_WAITING）状态，此时线程暂时不活动，知道调度器重新激活
+- 当发生一下时间时，处在运行状态的线程会转入到不可运行状态
+    -- 调用了sleep()方法 线程从 RUNNABLE->TIMED_WAITING
+    -- 线程调用wait()方法 调用的线程 从  RUNNABLE -》 WAITING
+
+4. 终止状态
+- run方法执行完毕
+- 异常终止
+
+ */
+
+
+
+/*
+
+ ### 线程的常用方法：
+
+ 1. this.start:
+    * 开启一个线程，在该线程中的run方法中的代码；
+    * 不保证立即运行，由系统安排调度分配执行
+
+ 2.this.join   ThreadTestJoin
+    * 等待调用线程终止 让一个线程等待另一个线程完成
+    * A线程调用B线程的join方法， B.join,则 A线程会等待B线程调用完毕后，继续执行A线程剩余的代码
+
+ 3.Thread.sleep
+    * 在指定的毫秒数让当前正在执行的线程睡眠
+
+ 4.Thread.yield
+    * 向调度器发起一个示意，表示当前线程愿意放弃使用当前处理器，让出资源，调度器可以忽略这一提示
+    * yield表示乐意放弃处理器的使用权，调度器可以先去处理其他程序
+
+ 5.
+    - this.interrupt
+     * 向当前调用者线程发出中断信号 调用interrupt（）方法仅仅是在当前线程中打了一个停止的标记，并不是真的停止线程，需要用户自己去监视线程的状态为并做处理。
+     * interrupt()方法发出的中断信号只能被wait() sleep() join()这三个方法捕捉到并产生中断
+
+    - Thred.interrupted
+     * 测试当前线程 是否中断，且清除中断状态
+     *
+
+    - isInterrupted
+     * 查看当前中断信号 true|false
+
+6.
+    - Object.wait()
+
+
+* */
+
+public class MyClass {
+    static final int MAX = 100;
+
+    public static void main(String[] args) {
+        SubThread subThread = new SubThread();
+        System.out.println("11111 subThread state:" + subThread.getState());
+
+        subThread.execStart();
+        System.out.println("22222 subThread state:" + subThread.getState());
+
+//        SubRunable subRunable = new SubRunable();
+//        new Thread(subRunable).start();
+
+//        System.out.println("main method ");
+//        subThread.execJoin();
+
+
+        for (int i = 0; i < MAX; i++) {
+            System.out.println(i + " 444444 subThread state:" + subThread.getState());
+
+//            try {
+//                Thread.sleep(10);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+        }
+
+        System.out.println("5555555 subThread state:" + subThread.getState());
+
+    }
+
+    public static class SubThread extends Thread {
+        @Override
+        public void run() {
+//        this.execJoin();
+
+
+            for (int i = 0; i < MyClass.MAX; i++) {
+                System.out.println("subThread run method..." + i + " state:" + this.getState());
+            this.execSleep();
+//            this.execInterrpt();
+//            this.execYield();
+//                this.execError(i);
+            }
+        }
+
+        public void execError(int i) {
+            if (i == 5) {
+                throw new Error("xxxx");
+            }
+        }
+
+        public void execStart() {
+            System.out.println("执行start start  start  start  start ");
+            this.start();
+        }
+
+        public void execYield() {
+            System.out.println("执行yield yield yield yield yield ");
+            Thread.yield();
+        }
+
+        public void execInterrpt() {
+            System.out.println("执行interrupt interrupt interrupt interrupt interrupt ");
+            this.interrupt();
+        }
+
+        public void execSleep() {
+            try {
+                System.out.println("执行sleep sleep sleep sleep ");
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void execJoin() {
+            try {
+                System.out.println("执行join join join join join ");
+                this.join();
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static class SubRunable implements Runnable {
+        @Override
+        public void run() {
+            for (int i = 0; i < MyClass.MAX; i++) {
+                System.out.println("subRuable subRuable subRuable subRuable subRuable subRuable subRuable subRuable run " + i);
+            }
+        }
+    }
+
+}
